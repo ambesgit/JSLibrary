@@ -165,6 +165,7 @@ pick()
 	myapp.$collections.pick("ambesa","a")   //["a",2]
 
 index()
+
 	myapp.$collections.index([1,2,3,4,5,6,2],2)     //[1,6]
 
 strEndWith()
@@ -230,6 +231,7 @@ insertChar()
 	myapp.$collections.insertChar("schol",2,"o")           //school
 
 reverse()
+
 	myapp.$collections.reverse("goodluck")    //kculdoog
 
 extract()
@@ -254,16 +256,20 @@ min()
 	myapp.$collections.min([1,2,3,4])   //1
 
 replace()
+
 	myapp.$collections.replace("amxes","x","b")  //"ambes"
 
 find()
+
 	myapp.$collections.find([1,2,3,4],4)  //[4]
 	myapp.$collections.find([1,2,3,4],8)  //[]
 
 sum()
+
 	myapp.$collections.sum([1,2,3,4,5])  //15
 
 map()
+	
 	myapp.$collections.map([1,2,3],3,"*")  //[3,6,9]
 	myapp.$collections.map([1,2,3],3,"+")  //[4,5,6]
 	myapp.$collections.map([1,2,3],3)  //[3,6,9]   the default operator(*)
