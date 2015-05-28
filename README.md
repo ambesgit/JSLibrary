@@ -47,8 +47,12 @@ createStacke()
 	stack.next()                  // returns 4
 	stack.size()               //1
 	stack.findAll()            //3
+	
+createMap()
+	var mapObject=myapp.createMap()      //you can use all functions which the native Map object provdes
 
 Events
+	
 	myapp.createEvent("data",{});                //creates an event named data
 
 	myapp.on("data")                           //listens to the data event
@@ -130,7 +134,7 @@ subset()
 	myapp.$collections.subset([1,2,3,4,5,6,2],2,4)     //[3,4,5]
 	myapp.$collections.subset([1,2,3,4,5,6,2],4)     //[5,2]
 
-isEqault()
+isEqaul()
 
 	myapp.$collections.isEqaul({a:1,b:2,c:{e:8,f:9}},{a:1,b:2,c:{e:8,z:9}})  //false because of the z and f keys 
 	myapp.$collections.isEqaul({a:1,b:2,c:{e:8,f:9}},{a:1,b:2,c:{e:8,f:100}})  //true
@@ -158,6 +162,9 @@ strCompact()
 pick()
 
 	myapp.$collections.pick("ambesa","a")   //["a",2]
+
+index()
+	myapp.$collections.index([1,2,3,4,5,6,2],2)     //[1,6]
 
 strEndWith()
 
