@@ -70,8 +70,8 @@ cssHtml()
 	myapp.cssHtml("bgcb","bd","delete")   //attaches an event called "delete" so if it fires and if event handler is 		listening to it change will reflect on the body div 
 	if "bgcb" is deleted from the $css object then the background will changed to default color
 
-myapp.html("bp","body p")
-myapp.cssHtml("bgcb","bp")       //the p element in the body will have black background create once apply to any one you want
+	myapp.html("bp","body p")
+	myapp.cssHtml("bgcb","bp")       //the p element in the body will have black background create once apply to any one 	you want
 
 data()
 
@@ -94,11 +94,11 @@ model()  only json resources
 	
 view()
 
-myapp.view("customerview","http://localhost:6060/customers");   //gets the resource which is part of html page 
+	myapp.view("customerview","http://localhost:6060/customers");   //gets the resource which is part of html page 
 
 controller()
 
-myapp.controller("add",function(a,b){return a+b;})   // creates a controller and stores it in the $controllers object
+	myapp.controller("add",function(a,b){return a+b;})   // creates a controller and stores it in the $controllers object
             later you can call this using myapp.$controllers.add(2,3)   //5
             
             
@@ -106,68 +106,68 @@ Functions of $collections object
 
 group()
     
-myapp.$collections.group([1,2,1,2,3,3,4,4,5,5,1,3])  //[[1,1,1],[2,2],[3,3,3],[4,4],[5,5]]
+	myapp.$collections.group([1,2,1,2,3,3,4,4,5,5,1,3])  //[[1,1,1],[2,2],[3,3,3],[4,4],[5,5]]
 
 carproduct()
 
-myapp.$collections.carproduct([1,2,3],[1,2,3],"*")  //[1,4,9]
-myapp.$collections.carproduct([1,2,3],[1,2,3],"/")  //[1,1,1]
+	myapp.$collections.carproduct([1,2,3],[1,2,3],"*")  //[1,4,9]
+	myapp.$collections.carproduct([1,2,3],[1,2,3],"/")  //[1,1,1]
 
 XOR()
 
-myapp.$collections.XOR([1,2,3,4],[1,2,3,5])    //[5,4]
+	myapp.$collections.XOR([1,2,3,4],[1,2,3,5])    //[5,4]
 
 union
 
-myapp.$collections.union([1,2,3,4,5,6],[1,2,5,6,7])   //[1,2,3,4,5,6,7]
+	myapp.$collections.union([1,2,3,4,5,6],[1,2,5,6,7])   //[1,2,3,4,5,6,7]
 
 inetersection()
 
-myapp.$collections.intersection({a:[1,2,3,4,5,6],b:98,c:88},{a:[1,2,5,6,7],b:90})  //[["a","b"]]
+	myapp.$collections.intersection({a:[1,2,3,4,5,6],b:98,c:88},{a:[1,2,5,6,7],b:90})  //[["a","b"]]
 
 subset()
 
-myapp.$collections.subset([1,2,3,4,5,6,2],2,4)     //[3,4,5]
-myapp.$collections.subset([1,2,3,4,5,6,2],4)     //[5,2]
+	myapp.$collections.subset([1,2,3,4,5,6,2],2,4)     //[3,4,5]
+	myapp.$collections.subset([1,2,3,4,5,6,2],4)     //[5,2]
 
 isEqault()
 
-myapp.$collections.isEqaul({a:1,b:2,c:{e:8,f:9}},{a:1,b:2,c:{e:8,z:9}})  //false because of the z and f keys 
-myapp.$collections.isEqaul({a:1,b:2,c:{e:8,f:9}},{a:1,b:2,c:{e:8,f:100}})  //true
+	myapp.$collections.isEqaul({a:1,b:2,c:{e:8,f:9}},{a:1,b:2,c:{e:8,z:9}})  //false because of the z and f keys 
+	myapp.$collections.isEqaul({a:1,b:2,c:{e:8,f:9}},{a:1,b:2,c:{e:8,f:100}})  //true
 
 compare()
 
-myapp.$collections.compare([1,2,3,4],[2,3,4,5])  //0
-myapp.$collections.compare([1,2,3],[2,3,4,5])  //-1
-myapp.$collections.compare([1,2,3,4],[2,3,4])  //1
+	myapp.$collections.compare([1,2,3,4],[2,3,4,5])  //0
+	myapp.$collections.compare([1,2,3],[2,3,4,5])  //-1
+	myapp.$collections.compare([1,2,3,4],[2,3,4])  //1
 
 keys()
 
-myapp.$collections.keys({a:1,b:2,c:{e:8,f:9}})    //[["a","b","c"],["e","f"]]
+	myapp.$collections.keys({a:1,b:2,c:{e:8,f:9}})    //[["a","b","c"],["e","f"]]
 
 sort()
 
-myapp.$collections.sort([4,3,2,6,1,[4,2,3,1]])  //[1,2,3,4,6,[1,2,3,4]]
-myapp.$collections.sort([4,3,2,6,1,[4,2,3,1]],true)  //[6,4,3,2,1,[4,3,2,1]]
-myapp.$collections.sort(["abc","cdf","bdc"])    //["abc","bdc","cdf"]
+	myapp.$collections.sort([4,3,2,6,1,[4,2,3,1]])  //[1,2,3,4,6,[1,2,3,4]]
+	myapp.$collections.sort([4,3,2,6,1,[4,2,3,1]],true)  //[6,4,3,2,1,[4,3,2,1]]
+	myapp.$collections.sort(["abc","cdf","bdc"])    //["abc","bdc","cdf"]
 
 strCompact()
 
-myapp.$collections.strCompact("  ambes    tetemke")   //["ambes tetemke"]
+	myapp.$collections.strCompact("  ambes    tetemke")   //["ambes tetemke"]
 
 pick()
 
-myapp.$collections.pick("ambesa","a")   //["a",2]
+	myapp.$collections.pick("ambesa","a")   //["a",2]
 
 strEndWith()
 
-myapp.$collections.strEndwith(["ambes.html","tetemke.doc",'html')     //["ambes.html"]
+	myapp.$collections.strEndwith(["ambes.html","tetemke.doc",'html')     //["ambes.html"]
 
 strContain()
 
-myapp.$collections.strContain(["ambes","tetemke","but","bteer"],"b")  //["ambes", "but", "bteer"]
-myapp.$collections.strStratwith("ambes",'be')  //["ambes"]
-myapp.$collections.strStratwith("ambes",'ts')     //[]
+	myapp.$collections.strContain(["ambes","tetemke","but","bteer"],"b")  //["ambes", "but", "bteer"]
+	myapp.$collections.strStratwith("ambes",'be')  //["ambes"]
+	myapp.$collections.strStratwith("ambes",'ts')     //[]
 
 strStartWith()
 
@@ -177,93 +177,93 @@ strStartWith()
 	
 strTrim()
 
-myapp.$collections.strTrim([" abc ", " derf "])  //[" abc"," derf"]
+	myapp.$collections.strTrim([" abc ", " derf "])  //[" abc"," derf"]
 
 strTrimLeft()
 
-myapp.$collections.strTrimLeft([ "  abc  ", "derf  "])   //["abc  ", "derf  "]
+	myapp.$collections.strTrimLeft([ "  abc  ", "derf  "])   //["abc  ", "derf  "]
 	
 strTrimRight()
 
-myapp.$collections.strTrimRight([" abc ", " derf "])  //[" abc"," derf"]
+	myapp.$collections.strTrimRight([" abc ", " derf "])  //[" abc"," derf"]
 
 strJoin()
 
-myapp.$collections.strJoin(["ambes","adu"],["yahoo","gmail"] ,"@") //["ambes@yahoo","adu@gmail"]
+	myapp.$collections.strJoin(["ambes","adu"],["yahoo","gmail"] ,"@") //["ambes@yahoo","adu@gmail"]
 
 charAtReplace()
 
-myapp.$collections.charAtReplace("abe",2,"c")  //"abc"
-myapp.$collections.charAtReplace(["abe"],2,"c")  //"abc"
+	myapp.$collections.charAtReplace("abe",2,"c")  //"abc"
+	myapp.$collections.charAtReplace(["abe"],2,"c")  //"abc"
 
 charAt()
 
-myapp.$collections.charAt(["abc","dce"],2) //["c","e"]
-myapp.$collections.charAt("about",1)  //b
+	myapp.$collections.charAt(["abc","dce"],2) //["c","e"]
+	myapp.$collections.charAt("about",1)  //b
 
 charAtDelete()
 
-myapp.$collections.charAtDelete("gosd",2)    //god
-myapp.$collections.charAtDelete(["scchohool","about"],2,2)  //["school","ab"]
+	myapp.$collections.charAtDelete("gosd",2)    //god
+	myapp.$collections.charAtDelete(["scchohool","about"],2,2)  //["school","ab"]
 
 charAppend()
 
-myapp.$collections.charAppend("attache","d")   //"attached"
+	myapp.$collections.charAppend("attache","d")   //"attached"
 
 charPreppend()
-myapp.$collections.charPreppend("chool","s")    //"school"
+	myapp.$collections.charPreppend("chool","s")    //"school"
 
 enclosed()
 
-myapp.$collections.enclosed("input","<",">")  //"<inpute>"
+	myapp.$collections.enclosed("input","<",">")  //"<inpute>"
 
 insertChar()
 
-myapp.$collections.insertChar("schol",2,"o")           //school
+	myapp.$collections.insertChar("schol",2,"o")           //school
 
 reverse()
-myapp.$collections.reverse("goodluck")    //kculdoog
+	myapp.$collections.reverse("goodluck")    //kculdoog
 
 extract()
 
-myapp.$collections.extract(["ambes1123, adu908"],true)  //["ambes"  "adu"]
-myapp.$collections.extract("ambes20983",false)        //209683
+	myapp.$collections.extract(["ambes1123, adu908"],true)  //["ambes"  "adu"]
+	myapp.$collections.extract("ambes20983",false)        //209683
 
 count()
 
-myapp.$collections.count([2,1,3,4,4,3],3)  //2
+	myapp.$collections.count([2,1,3,4,4,3],3)  //2
 
 mean()
 
-myapp.$collections.mean([1,2,3,4,5])   //3
+	myapp.$collections.mean([1,2,3,4,5])   //3
 
 max()
 
-myapp.$collections.max([1,2,3,4])   //4
+	myapp.$collections.max([1,2,3,4])   //4
 
 min()
 
-myapp.$collections.min([1,2,3,4])   //1
+	myapp.$collections.min([1,2,3,4])   //1
 
 replace()
-myapp.$collections.replace("amxes","x","b")  //"ambes"
+	myapp.$collections.replace("amxes","x","b")  //"ambes"
 
 find()
-myapp.$collections.find([1,2,3,4],4)  //[4]
-myapp.$collections.find([1,2,3,4],8)  //[]
+	myapp.$collections.find([1,2,3,4],4)  //[4]
+	myapp.$collections.find([1,2,3,4],8)  //[]
 
 sum()
-myapp.$collections.sum([1,2,3,4,5])  //15
+	myapp.$collections.sum([1,2,3,4,5])  //15
 
 map()
-myapp.$collections.map([1,2,3],3,"*")  //[3,6,9]
-myapp.$collections.map([1,2,3],3,"+")  //[4,5,6]
-myapp.$collections.map([1,2,3],3)  //[3,6,9]   the default operator(*)
+	myapp.$collections.map([1,2,3],3,"*")  //[3,6,9]
+	myapp.$collections.map([1,2,3],3,"+")  //[4,5,6]
+	myapp.$collections.map([1,2,3],3)  //[3,6,9]   the default operator(*)
 
 type()
 
-myapp.$collections.type([1],[1,2,3,4]) //true
-myapp.$collections.type([1,2],{a:2})  //false
+	myapp.$collections.type([1],[1,2,3,4]) //true
+	myapp.$collections.type([1,2],{a:2})  //false
 
 
 
