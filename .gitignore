@@ -1,0 +1,2617 @@
+;(function(){ this.jsquery=new function(){return function(){
+
+	var that=this;
+	
+
+	this.$mvc={
+
+	$collections:{},$css:{},$html:{},$routes:{},$views:{},$models:{},$controllers:{},$events:{},$data:{},
+	$win:window,
+	//this function will get the value of the child node element's attribute
+	//why the arguments.callee 
+	getElements:function(node,name){						
+		if(node.hasChildNodes()){
+			var getElement=function(n){ 				
+				if(n<0){
+					return null;
+				}
+				else if(node.children[n].attributes[0].name===name){
+				//if every one with that value has to be visited, the return word will be cancel					
+					return node.children[n].attributes[0].value;					
+				}
+				return arguments.callee(n-1);
+			};
+			getElement(node.children.length-1);
+					
+		}
+		
+	
+	else {
+		return node;
+	}
+
+	},
+
+	//this function will get the value of a given attrinute of a node
+	getAttributes:function(element,name){
+		var element=element;
+		var name=name;				
+		if(element.hasAttributes()){
+			var getattribute=function(n){ 				
+				if(n<0){
+					return null;
+				}
+				else if(element.attributes[n].name===name){ 
+					return element.attributes[n].value;
+				}
+				return arguments.callee(n-1);
+			}(element.attributes.length-1);
+			return getattribute;		
+		}
+		
+	
+	else {
+		return null;
+	}
+	},
+
+
+	//this is the view that will be loaded whenever the view function is called
+	//add event listen that will update the view when the name of the view associated with
+	//url is changed, that means a new url by that name is added to the views object
+	//at this time go and get a new resources base the name url and feed to the template
+	view:function(name,url){		
+		//ajax request for a particular view also event object will update
+		try{
+		if(that.$mvc.$views[name]!=undefined){
+			document.getElementById("ie").innerHTML=that.$mvc.$views.ele;
+		}
+
+
+		else{
+
+		var xhr=new XMLHttpRequest();
+		xhr.onreadystatechange=function(){
+			if(xhr.readyState===4 && xhr.status===200){
+
+				document.getElementById("ie").innerHTML=xhr.responseText;
+				that.$mvc.$views[name]=xhr.responseText;//url;				
+			}
+		}
+		xhr.open("get",url);
+		xhr.send(null);
+
+		}
+	}
+	catch(e){
+		console.log("check your inputs")
+	}
+
+	},
+
+	//this will hold the model of different views loaded sofar
+	//this will grap json objects and store internally by the given name
+
+	model:function(name,url){
+		if(typeof url ==="function" || (typeof url==="object" && typeof url[url.length-1]==="function")){
+		that.$mvc.$models[name]=url;
+		return url;
+
+		}
+		{
+
+		var xhr=new XMLHttpRequest();
+			xhr.onreadystatechange=function(){
+			if(xhr.readyState===4 && (xhr.status>=200 && xhr.status<=304)){
+				//var json=JSON.parse(xhr.responseText);
+				that.$mvc.$models[name]=JSON.parse(xhr.responseText);
+
+			}
+		}
+		xhr.open("get",url);
+		xhr.send(null);
+	}
+		//if data is not loaded, ajax request will be made also event object will update
+		
+},
+		//business logic will be registered using this function also event object 
+		//will get you javascript file as src then exectute the codes in the file 
+		//will use the src script tag with the arrival of the file 
+		controller:function(name,func){	
+		if(_c.isFunction(func)){
+		that.$mvc.$controllers[name]=func;
+		}
+			},
+		/*
+		used to extract the name of the node to which a new node to be added to it
+		internal use only 
+		*/	
+		node:function(n){			
+			if(n.hasChildNodes() && n.firstElementChild){		
+				return that.$mvc.node(n.firstElementChild);					
+				}			
+			else {
+				return n.nodeName.toString().toLowerCase();
+			}			
+		},
+		//the css object will provided the following methods and objects******************
+		//name will be used to store the event object, then obj will be used 
+		//to pass object to the customeEvent constructor as second argument as required
+		createEvent:function(name,obj){
+			var s={detail:{target:"delete", date: new Date},bubbles:true, cancelable:true};
+			if(obj!==undefined){
+				s=obj;
+			}
+			//custom event will be created and stored inside the event object
+			_event.setEvent(name,[new _c.w.CustomEvent(name,s)]);
+			
+
+		},		
+		//this is the interface to create a named css property and value
+		//example css("name", "background-color:black")
+		css:function(name,act){
+			
+				//for the delete, an event has to be created
+				if(act==="delete"){
+				try{
+
+					_css.deleteStyle(name);	
+					that.$mvc.emit(act,name);				
+					
+				}
+				catch(e){}
+				}
+				else if(_css[name]===undefined){					
+					_css.setStyle(name,act);
+
+				}													
+		},
+		//this is the interface to grap piece of html using css selector and named it
+		//example html("name", "body div")
+		html:function(name,obj){ 
+			if(obj==="delete"){
+					_css.deleteStyle(name);
+				}
+			else if(_html[name]===undefined){
+				_html.setSelector(name,obj);
+				
+			}			
+										
+		},
+		//this is the interface to hold a reference to data or to create ad hoc data and store in array by the name parameter
+		//example data("name", "[1,2,3,4,5]")
+		data:function(name,dat){
+			if(dat==="delete"){
+					_data.deleteData(name,val);					
+				}
+			else {
+				if(_c.isArray(dat)){
+					for(var i=0; i<dat.length; i++){
+						_data.setData(name,dat[i]);
+					}
+				}
+				else{
+					_data.setData(name,dat);
+					}
+				}
+				//hi data is changed so if any one is listening, i am emittig the data event
+				//and the name is the flag to use by the emitter as the source id
+				that.$mvc.emit("data",name)
+			
+
+		},
+		/*a and b will be bounded together , if n is provided, an event will be attached to watch for any change of the value after bounded
+		example if a name of the css property you created using css() interface and b is the
+		name to the css electore for html element then the cssHtml () 
+		will look for the css property and apply to the piece of html identified by the name
+		if n is undefined, event will be attached to the bounded css and html for farther change
+		*/
+		cssHtml:function(a,b,n){
+			if((_css[a]!==undefined || _css[b]!==undefined) && (_html[a]!==undefined || _html[b]!==undefined)){
+				var c,f;
+			if(a!=="deleted"){
+			f=_css.getStyle(a)
+			
+				if(f!==undefined){
+				
+				c=document.querySelectorAll(_html.getSelector(b));
+					for(var i=0; i<c.length; i++){
+					c[i].style[f[0]]=f[1];
+					}
+				}
+
+			}
+			else{
+				
+				f=_css.getStyle("deleted");
+				
+			
+				c=document.querySelectorAll(_html.getSelector(b));
+				for(var i=0; i<c.length; i++){
+				c[i].style[f[0]]=null;
+				}
+			}
+			if(n!==undefined){
+				//adds the selector to the event identified by n------> this is
+				// the name of an event created by the event method, access the event then add this as 
+				_event[n][_event[n].length]=a+":"+b+":"+"style";
+				
+			}	
+		
+		}
+		},
+		/*
+		the data identified by the name a and the piece of html element identified by b
+		will bound togather to display the data using the html element
+		if n is provided, event will be attached to the node(data to html) so
+		any time a change to the data will affect the html
+		*/
+		dataHtml:function(a,b,n){
+			if((_data[a]!==undefined || _data[b]!==undefined) && (_html[a]!==undefined || _html[b]!==undefined)){
+				var l,x,c,f;
+			if(a!=="deleted"){
+			f=_data.getData(a)
+			
+				if(f!==undefined){
+				var p=function(z){
+				if(z===f.length){return null;}
+
+				else{
+					//how do i change this selector with every call of p
+					
+				if(z===0){x=b;}
+				c=document.querySelectorAll(_html.getSelector(x));
+					for(var i=0; i<c.length; i++){
+						if(_c.isArray(f)){
+							_c.sort(f)
+							var el,tr,nd,td;
+							//call function here to look in to the selector type ....
+							nd=document.createTextNode(f[z]);
+							if(that.$mvc.node(c[i])==="td"){								
+								tr=document.createElement("tr");
+								td=document.createElement(that.$mvc.node(c[i]))
+								td.appendChild(nd)
+								tr.appendChild(td);
+								c[i].appendChild(tr);
+							}
+							else{					
+							el=document.createElement(that.$mvc.node(c[i]));
+							el.appendChild(nd);
+							c[i].appendChild(el);
+							}
+						}
+						else{
+						//call function here to look in to the selector type ....
+							var el,tr,nd,td;
+							//call function here to look in to the selector type ....
+							nd=document.createTextNode(f);
+							if(that.$mvc.node(c[i])==="td"){								
+								tr=document.createElement("tr");
+								td=document.createElement(that.$mvc.node(c[i]))
+								td.appendChild(nd)
+								tr.appendChild(td);
+								c[i].appendChild(tr);
+							}
+							else{					
+							el=document.createElement(that.$mvc.node(c[i]));
+							el.appendChild(nd);
+							c[i].appendChild(el);
+							}
+						}
+					}
+					}
+					return p(z+1);
+				}
+				p(0)
+				}
+			}
+			else{
+				
+				f=_data.getData("deleted");
+				
+			
+				c=document.querySelectorAll(_html.getSelector(b));
+				for(var i=0; i<c.length; i++){
+				c[i].innerHTML=null;
+				}
+			}
+			if(n!==undefined){
+				//adds the selector to the event identified by n------> this is
+				// the name of an event created by the event method, access the event then add this as 
+				_event[n][_event[n].length]=a+":"+b+":"+"data";
+				
+			}	
+
+		}
+		},	
+
+		/*
+		this will emit the event you created 
+		so you need to call this emit method in any function 
+		that operates in a node(could be css and html, or html and data) with event attached to it
+		*/
+		emit:function(a,b){
+
+			var e;
+			try{
+				e=_event.getEvent(a);
+				if(b!==undefined){
+					//this is the key for communication 
+					//the receiver of the event will check this 
+					//value to update its content 
+				e[0].source=b;
+					}
+			_c.w.dispatchEvent(e[0]);
+			
+		}
+		catch(e){}
+		},
+		/*
+		once you create an event, you need to listen to it if it fires by a function 
+		execuation or by user interaction with the app
+		the emit method has to be call if only you set up a listener to it before you fire it
+		example on("data"--->emit("data",{source.name}), so if you have many listeners for the
+		same event, you separate them using by embeding source object in the event object
+		second parameter and accesses this source object at the listener to decide who fire the event
+		*/ 
+	
+		on:function(a){			
+			addEventListener(a,function(e){			
+				//if the developer pass a callback function
+			var f=function(n){
+				//why not n<0, because the first element of the event object is the event not css style name
+				if(n===0){ return null;}
+				else{
+				try{
+				var ns=_event[a];
+				s=ns[n].split(":");	
+				
+				}
+				catch(e){}
+				if(s[s.length-1]==="style"){
+					if(a==="delete"){
+						if(s[0]===e.source){
+							
+							that.$mvc.cssHtml("deleted",s[1]);
+						}					
+					}
+					else{
+						if(s[0]===e.source){
+							//s[0] is the name for css style property value pair
+							//s[1] is the name for associated html selector
+							that.$mvc.cssHtml(s[0],s[1]);
+							}
+					}
+				}
+				else if(s[s.length-1]==="data"){
+					if(a==="delete"){
+						if(s[0]===e.source){
+						that.$mvc.dataHtml("deleted",s[1]);
+						}
+					}
+					else{
+						if(s[0]===e.source){
+							//s[0] is name of the data's storage, 
+							//s[1] is the associated html selectore
+							that.$mvc.dataHtml(s[0],s[1]);
+						}
+
+
+					}
+				}
+			}
+			return f(n-1);
+			};f(_event[a].length-1)},false);	
+		
+		}
+
+	};
+
+				
+			
+		//the collections object will provided the following methods/functions
+		//namespace for objects in the this.$mvc object**************
+		var _data=this.$mvc.$data;
+		var _css=this.$mvc.$css;
+		var _html=this.$mvc.$html;
+		var _event=this.$mvc.$events;
+		var _c=this.$mvc.$collections;
+		_css.deleteStyle=function(name){
+			if(_css[name]!==undefined){			
+			_css.setStyle("deleted",_css[name]);
+			}
+			delete _css[name];
+		};
+		//reurns an array where the first entry is name of the style and the second is the value
+		_css.getStyle=function(name){
+			var n,t=[],e,s=[];			
+			try{
+			s=_css[name].split(":");
+			}
+			catch(e){}
+			if(s.length>1){
+				try{
+					t=s[0].split("-");					
+					if(t.length>1){						
+						n=t[0];
+						for(var i=1; i<t.length; i++){
+							n+=_c.trim(_c.trim(_c.charAtReplace(t[i]),0,(_c.charAt(t[i]).toString().toUpperCase()))[0]);
+						}
+					}
+					else{
+						n=s[0]
+					}
+				}
+				catch(e){}
+				return [n,s[1]];
+			}
+			else{
+				return n;
+			}
+					
+		};
+		_css.setStyle=function(name,value){		
+			
+			_css[name]=value;
+
+			
+		};
+		_html.getSelector=function(name){
+			return _html[name];
+		};
+		_html.setSelector=function(name,value){
+			_html[name]=value
+		};
+		_event.getEvent=function(name){
+			return _event[name];
+		};
+		_event.setEvent=function(name,value){
+			_event[name]=value;
+		};
+		//returns array 
+		_data.getData=function(name){			
+			return _data[name];
+		};
+		//key and value but the value stores in an array
+		_data.setData=function(name,value){
+			if(_data[name]!=undefined){
+				if(_data[name].indexOf(value)===-1){
+				_data[name][_data[name].length]=value;
+				}
+			}
+			else if(_data[name]===undefined){
+			_data[name]=[value];
+
+			}
+		};
+		//returns array, so you need to loop to delete specific element or use the indexof and splice
+		_data.deleteData=function(name,value){
+			if(_data[name]!==undefined){
+			var s=_data[name].indexOf(value);
+			_data[name].splice(s,1);			
+			
+			}
+			if(value==="all"){
+			delete _data[name];
+			}
+		};
+		
+		_c.isFunction=function(o){if(typeof o==="function"){return true;} else {return false;}};		
+		_c.isArray=this.$mvc.$win.Array.isArray;
+		_c.isFinite=this.$mvc.$win.Number.isFinite;
+		_c.w=this.$mvc.$win;
+
+		_c.isObject=function(o){if(typeof o==="object" && !_c.isArray(o)){return true;} else {return false;}};
+		_c.isString=function(o){if(typeof o==="string"){return true;} else {return false;}};		
+		//*********************************************************
+		/*
+		example type([1],[1,2,3,4]) //true
+		type([1,2],{a:2})  //false
+		*/
+		_c.type=function(a,b){
+			if(typeof a=== typeof b){
+				return true;
+			}
+			else{
+				return false;
+			}
+		};
+		/*
+		example map([1,2,3],3,"*")  //[3,6,9]
+		example map([1,2,3],3,"+")  //[4,5,6]
+		*/
+		_c.map=function(a,b,c){
+			var mapped=[];
+		if(_c.isArray(a) && _c.isFinite(b)){
+		var mapping=function(n,m){
+
+		if(n===m){
+			return null
+		}
+		else {
+			if(_c.isFinite(a[n])){
+				if(c==="*"){
+			mapped.push(a[n]*b);
+				}
+			
+				if(c==="+"){
+			mapped.push(a[n]+b);
+				}
+			
+				if(c==="-"){
+			mapped.push(a[n]-b);
+				}
+			
+				if(c==="/" && b!==0){
+			mapped.push(a[n]/b);
+				}
+			}
+			
+			else{
+				mapped.push(a[n]);
+				}
+			}
+		return mapping(n+1,m);
+		}
+		mapping(mapped.length,a.length);
+		}
+		return mapped;
+		};
+			/*
+
+			example sum([1,2,3,4,5])  //15
+			*/
+		_c.sum=function(a){
+			var r=0;
+			if(_c.isArray(a)){
+
+				var s=function(b){
+
+					if(b<0){
+					return null
+					}
+				else {
+				if(_c.isFinite(a[b])){
+					r+=a[b];
+					}				
+				}
+				return s(b-1);
+				};
+				s(a.length-1);
+
+			}
+
+			return r;
+		};
+			/*
+			example find([1,2,3,4],4)  //[4]
+			*/
+		_c.find=function(a,d){
+			var t=[];
+			if(_c.isArray(a)){
+			var f=function(b){	
+			if(b<0){return null;}
+			else if(a[b]===d){
+				t.push(a[b]);
+
+				}
+				return f(b-1);			
+			};
+			f(a.length-1);
+			}
+			return t;
+		};
+
+		// example replace("amxes","x","b")  //"ambes"
+		_c.replace=function(a,o,n){
+			
+			if(_c.isArray(a)){
+			var p=function(b){	
+			if(b<0){return null;}
+			else if(a[b]===o){
+				a[b]=n;
+				}
+				return p(b-1);			
+			};
+			p(a.length-1);
+			}
+			return a;
+		};
+
+
+		// example min([1,2,3,4])   //1
+		_c.min=function(a){
+			var m;
+			if(_c.isArray(a) && _c.isFinite(a[0])){
+				m=a[0];
+				var p=function(b){	
+			if(b<0){return null;}
+			else{
+				if(_c.isFinite(a[b])){
+				if(a[b]<m){
+					m=a[b];
+				}
+				}
+			}
+				return p(b-1);			
+			};
+			p(a.length-1);
+			}
+			return m;
+		};
+
+		// example max([1,2,3,4])   //4
+		_c.max=function(a){
+			var m;
+			if(_c.isArray(a) && _c.isFinite(a[0])){
+				m=a[0];
+				var p=function(b){	
+			if(b<0){return null;}
+			else{
+				if(_c.isFinite(a[b])){
+				if(a[b]>m){
+					m=a[b];
+				}
+				}
+			}
+				return p(b-1);			
+			};
+			p(a.length-1);
+			}
+			return m;
+		};
+
+		// example mean([1,2,3,4,5])   //3
+		_c.mean=function(a){
+			var m,c=0;
+			if(_c.isArray(a)){
+				m=0;
+				var p=function(b){	
+			if(b<0){return null;}
+			else{
+				if(_c.isFinite(a[b])){
+					m+=a[b];
+					c+=1;				
+				}
+			}
+				return p(b-1);			
+			};
+			p(a.length-1);
+			}
+			if(c!=0){
+			return m/c;
+		}
+		else{
+			return a;
+		}
+		};
+
+
+		//example count([2,1,3,4,4,3],3)  //2
+		_c.count=function(a,d){
+			var c=0;
+			if(_c.isArray(a)){
+			var f=function(b){	
+			if(b<0){return null;}
+			else if(a[b]===d){
+				c+=1;
+				}
+				return f(b-1);			
+			};
+			f(a.length-1);
+			}
+			return c;
+		};
+		//for string manuplation ____________________________________________________________STRING MANUPLATION START'S HERE
+		
+		/*this method is for extracting text with no space and any symboles
+		three will be three types of return base on the value of b
+		if b is true-->only string part of the extracted value will be returned
+		if b is false-->only the digit/numbers will be returned
+		if b is undefined string and numbers if any will return together
+
+		example extract("ambes20983",true)  //"ambes"
+		extract("ambes20983",false)        //209683
+		extract(["ambes1123, adu908"],true)  //["ambes"  "adu"]
+		*/
+		_c.extract=function(a,b){
+			var t=[],c=[];
+			if(b===true){
+				if(_c.isArray(a)){
+					for(var i=0; i<a.length; i++){
+						if(_c.isString(a[i])){
+						c.push(/\w[a-z]+/.exec(a[i])[0]);
+						}
+						else if(_c.isArray(a[i])){
+							t=_c.extract(a[i],b);
+							if(t.length!==0){
+								c.push(t);
+							}
+						}
+					}
+				}
+				else if(_c.isString(a)){
+					c.push(/\w[a-z]+/.exec(a)[0]);
+				}
+			}
+			else if(b===false){
+				if(_c.isArray(a)){
+					for(var i=0; i<a.length; i++){
+						if(_c.isString(a[i])){
+						c.push(Number  (/\d+/.exec(a[i])[0]));
+						}
+						else if(_c.isArray(a[i])){
+							t=_c.extract(a[i],b);
+							if(t.length!==0){
+								c.push(t);
+							}
+						}
+						else if(_c.isFinite(a[i])){
+							c.push(a[i]);
+				}
+					}
+				}
+				else if(_c.isString(a)){
+					c.push(Number (/\d+/.exec(a)[0]));
+				}
+				else if(_c.isFinite(a)){
+					c.push(a);
+				}
+			}
+
+			else{
+				c.push(/\w+/.exec(a)[0]);
+			}
+			return c;
+		};
+		/*orders char of the string in a reverse order
+		every element in the input will write right to left
+
+		example reverse("goodluck")    //kculdoog
+		*/
+		_c.reverse=function(a){
+			var t=[],i=0,s='',c=[];
+			if(_c.isString(a)){
+				i=a.length-1;
+				while(i>=0){
+					s+=a[i];
+					i-=1;
+				}
+				c.push(s);
+			}
+			else if(_c.isArray(a)){
+				for(var v=0; v<a.length; v++){
+					if(_c.isArray(a[v])){
+						t=_c.reverse(a[v]);
+						if(t.length!=0){
+							c.push(t);
+						}
+					}
+					else if(_c.isString(a[v])){
+							i=a[v].length-1;
+						while(i>=0){
+						s+=a[v][i];
+						i-=1;
+						}
+						c.push(s);
+						s=''
+						}
+					}
+				}
+			return c;
+		};
+		/*
+		inserts the char n to the right of index  o 	
+		example insertChar("schol",2,"o")  //school
+		("shool",0,"c")   //school
+		*/
+		_c.insertChar=function(a,o,n){
+			var t=[],c=[];
+			if(_c.isArray(a) && _c.isFinite(o)){
+			for(var i=0; i<a.length; i++){				
+					if(_c.isArray(a[i])){
+						t=_c.insertChar(a[i],o,n);
+						if(t.length!=0){
+							c.push(t);
+						}
+					}
+					else if(_c.isString(a[i])){
+						if(o<a[i].length && o!==0){
+							if(_c.isString(n)){
+						c.push(a[i].substr(0,o)+n+a[i].substr(o+n.length));
+							}
+							else{
+								c.push(a[i].substr(0,o)+n+a[i].substr(o+2));
+							}
+						}
+
+						else if(o===0){
+							c.push(n+a[i].substr(0));
+						}
+						else if(o===a[i].length){
+							c.push(a[i].substr(1)+n);
+						}
+
+					}
+				
+			}
+			}
+			else if(_c.isString(a) && _c.isFinite(o) && _c.isString(n)){
+				if(o<a.length && o!==0){
+						c.push(a.substr(0,o+1)+n+a.substr(o+n.length));
+						}
+						else if(o===1){
+							c.push(n+a.substr(0));
+						}
+						else if(o===a.length){
+							c.push(a.substr(1)+n);
+						}
+
+			}
+			return c;
+		};
+		/* you can use this for enclosed tags around a text to use it with innHTML method
+		the input text will be surrounded by the value of f nad l parameters <kind>
+		example enclosed("input","<",">")  //"<inpute>"
+		*/ 
+		_c.enclosed=function(a,f,l){
+			var t=[],c=[];
+			if(_c.isArray(a)){
+				for(var i=0; i<a.length;i++){
+					if(_c.isArray(a[i])){
+						t=_c.append(a[i]);
+						if(t.length!=0){
+							c.push(t)
+						}
+					}
+					else if(_c.isString(a[i])){
+						c.push(f+_c.strTrim(a[i])+l);
+					}
+				}
+			}
+			else if(_c.isString(a)){
+				c.push(f+_c.strTrim(a)+l);
+			}
+
+			return c;
+
+
+		};
+		/* the character/s at the n parameter will 
+		inserts at the beginig of the string (a)
+		ex  charPreppend("chool","s")    //"school"
+		*/
+		_c.charPreppend=function(a,n){
+			var t=[],c=[];
+			if(_c.isArray(a)){
+				for(var i=0; i<a.length;i++){
+					if(_c.isArray(a[i])){
+						t=_c.charPreppend(a[i],n);
+						if(t.length!=0){
+							c.push(t)
+						}
+					}
+					else if(_c.isString(a[i])){
+						c.push(n+_c.strTrim(a[i]));
+					}
+				}
+			}
+			else if(_c.isString(a)){
+				c.push(n+_c.strTrim(a));
+			}
+
+			return c;
+
+		}
+		//the character/s at n will inserted at the last of the string (a)
+		//ex  charAppend("attache","d")   //"attached"
+		_c.charAppend=function(a,n){
+			var t=[],c=[];
+			if(_c.isArray(a)){
+				for(var i=0; i<a.length;i++){
+					if(_c.isArray(a[i])){
+						t=_c.charAppend(a[i],n);
+						if(t.length!=0){
+							c.push(t)
+						}
+					}
+					else if(_c.isString(a[i])){
+						c.push(_c.strTrim(a[i])+n);
+					}
+				}
+			}
+			else if(_c.isString(a)){
+				c.push(_c.strTrim(a)+n);
+			}
+
+			return c;
+		};	
+		/* get the char at the index of o and delete it
+		to delete a range, you need to provided a small value for o and 
+		a biger value for p but it has to be with the string length range
+
+		ex   charAtDelete("gosd",2)    //god
+		ex charAtDelete(["scchohool","about"],2,2)  //["school","ab"]
+		*/
+
+		_c.charAtDelete=function(a,o,p){
+			var x;
+			if(p===undefined){
+				x=0;
+			}
+			else{
+				x=p;
+			}
+			var t=[],c=[];
+			if(_c.isArray(a) && _c.isFinite(o)){
+			for(var i=0; i<a.length; i++){				
+					if(_c.isArray(a[i])){
+						t=_c.charAtDelete(a[i],o,x);
+						if(t.length!=0){
+							c.push(t);
+						}
+					}
+					else if(_c.isString(a[i])){
+						if(o<a[i].length && o!==0){
+						c.push(a[i].substr(0,o)+a[i].substr(o+1+x));
+						}
+						else if(o===0){
+							c.push(a[i].substr(1));
+						}
+						else if(o===a[i].length-1){
+							c.push(a[i].substr(0,o-1));
+						}
+
+					}
+				
+				}
+			}
+		
+			
+			else if(_c.isString(a) && _c.isFinite(o)){
+				if(o<a.length && o!==0){
+						c.push(a.substr(0,o)+a.substr(o+1+x));
+						}
+						else if(o===0){
+							c.push(a.substr(1));
+						}
+						else if(o===a.length-1){
+							c.push(a.substr(0,o-1));
+						}
+
+			}
+
+				return c;
+
+		};
+
+		/*returns char at the specified index
+			ex  charAt("about",1)  //b
+			ex charAt(["abc","dce"],2) //["c","e"]
+		*/
+		_c.charAt=function(a,c){
+			if(_c.isArray(a)){
+				var b=[];
+				for(var i=0; i<a.length; i++){
+					b.push(a[i].charAt(c));
+				}
+				return b;
+
+			}
+			else if(_c.isString(a)){
+			return a.charAt(c);
+			}
+			else{
+				return a;
+			}
+		};
+
+		/* replaces the char at o by the char at n, 
+		so char at o must be present in the string
+		ex charAtReplace("abe",2,"c")  //"abc"
+		ex  charAtReplace(["abe"],2,"c")  //"abc"
+		*/
+		_c.charAtReplace=function(a,o,n){
+			var t=[],c=[];
+			if(_c.isArray(a) && _c.isFinite(o)){
+			for(var i=0; i<a.length; i++){				
+					if(_c.isArray(a[i])){
+						t=_c.charAtReplace(a[i],o,n);
+						if(t.length!=0){
+							c.push(t);
+						}
+					}
+					else if(_c.isString(a[i])){
+						if(o<a[i].length && o!==0){
+						c.push(a[i].substr(0,o)+n+a[i].substr(o+1));
+						}
+						else if(o===0){
+							c.push(n+a[i].substr(1));
+						}
+						else if(o===a[i].length-1){
+							c.push(a[i].substr(0,a[i].length-1)+n);
+						}
+
+					}
+				
+				}
+				return c;
+			}
+		
+			
+			else if(_c.isString(a) && _c.isFinite(o)){
+				if(o<a.length && o!==0){
+						c.push(a.substr(0,o)+n+a.substr(o+1));
+						}
+				else if(o===0){
+					c.push(n+a.substr(1));
+					}
+				else if(o===a.length-1){
+					c.push(a.substr(0,a.length-1)+n);
+					}
+					
+				return c[0];
+			}
+
+			
+		};
+		/* you have to strings to be joined using a special char or symbole like @
+		example strJoin("ambes","tetemke", "@")    //["ambes@tetemke"]
+		strJoin(["ambes","tetemke"],["yahoo","gmail"] ,"@") //["ambes@yahoo","tetemke@gmail"]
+			
+		*/	
+		_c.strJoin=function(a,b,e){
+
+			var t=[],len,c=[];
+			if(e===undefined){
+				e=" ";
+			}
+			if((_c.isString(a) || _c.isFinite(a)) && (_c.isString(a) || _c.isFinite(b))){
+				c.push(_c.strTrim(a)+e+_c.strTrim(b));
+
+			}
+			else if(_c.isArray(a) && _c.isArray(b)){
+				if(a.length!==b.length){
+					if(a.length>b.length){
+						len=a.length;
+					}
+					else if(a.length<b.length){
+						len=b.length;
+					}
+				}
+				else if(a.length===b.length){
+					len=a.length;
+				}
+				for(var i=0; i<len; i++){
+					if(_c.isArray(a[i])){
+						t=_c.strJoin(a[i],b[i],e);
+						if(t.length!=0){
+							c.push(t);
+						}
+					}
+					else if(_c.isString(a[i]) && _c.isString(b[i]) || _c.isFinite(a[i]) || _c.isFinite(b[i])){
+					c.push(_c.strTrim(a[i])+e+_c.strTrim(b[i]));
+				}
+				}
+			}
+			return c;
+		};
+		/*
+		ex strTrim("  ambes  ")   //"ambes"
+		ex strTrim([" abc ", " derf "])  //["abc","derf"]
+		*/
+		_c.strTrim=function(a){
+			var t=[],b=[];
+			if(_c.isString(a)){
+				try{
+				b.push(/\w+/.exec(a)[0]);
+				}
+				catch(e){
+					//the exec may not return nothing so the [0] will case error
+				}
+			}
+			else if(_c.isFinite(a)){
+				try{
+				b.push(/\d+/.exec(a)[0]);
+				}
+				catch(e){
+					//the exec may not return nothing so the [0] will case error
+				}
+			}
+			else if(_c.isArray(a)){
+				for(var i=0; i<a.length; i++){
+					if(_c.isArray(a[i])){
+						t=_c.strTrim(a[i]);
+						if(t.length!=0){
+							b.push(t);
+						}
+					}
+					else if(_c.isString(a[i])){
+						try{
+						b.push(/\w+/.exec(a[i])[0]);
+						}
+						catch(e){
+						//the exec may not return nothing so the [0] will case error
+						}
+					}
+					else if(_c.isFinite(a[i])){
+						try{
+						b.push(/\d+/.exec(a[i])[0]);
+						}
+						catch(e){
+						//the exec may not return nothing so the [0] will case error
+						}
+					}
+				}
+			}
+			
+			return b;
+			};
+			/*
+			ex strTrim([" abc ", " derf "])  //[" abc"," derf"]
+			*/
+			_c.strTrimRight=function(a){
+				var t=[],b=[];
+			if(_c.isString(a)){
+				try{
+				b.push(/\s*\d*\w+/.exec(a)[0]);
+				}
+				catch(e){
+					//the exec may not return nothing so the [0] will case error
+				}
+			}
+			else if(_c.isFinite(a)){
+
+				try{
+				b.push(/\s*\w*\d+/.exec(a)[0]);
+				}
+				catch(e){
+					//the exec may not return nothing so the [0] will case error
+				}
+			}
+			else if(_c.isArray(a)){
+				for(var i=0; i<a.length; i++){
+					if(_c.isArray(a[i])){
+						t=_c.strTrim(a[i]);
+						if(t.length!=0){
+							b.push(t);
+						}
+					}
+					else if(_c.isString(a[i])){
+							try{
+							b.push(/\s*\d*\w+/.exec(a[i])[0]);
+							}
+							catch(e){
+							//the exec may not return nothing so the [0] will case error
+							}
+					}
+					else if(_c.isFinite(a[i])){
+						try{
+							b.push(/\s*\w*\d+/.exec(a[i])[0]);
+							}
+							catch(e){
+							//the exec may not return nothing so the [0] will case error
+							}
+					}
+				}
+			}
+			
+			return b;
+
+			};
+
+			/*
+				ex  strTrimLeft([ "  abc  ", "derf  "])   //["abc  ", "derf  "]
+			*/
+			_c.strTrimLeft=function(a){
+			var t=[],b=[];
+			if(_c.isString(a)){
+				try{
+				b.push(/\w+\d*\s*/.exec(a)[0]);
+				}
+				catch(e){
+					//the exec may not return nothing so the [0] will case error
+				}
+			}
+			else if(_c.isFinite(a)){
+
+				try{
+				b.push(/\d+\w*\s*/.exec(a)[0]);
+				}
+				catch(e){
+					//the exec may not return nothing so the [0] will case error
+				}
+			}
+			else if(_c.isArray(a)){
+				for(var i=0; i<a.length; i++){
+					if(_c.isArray(a[i])){
+						t=_c.strTrim(a[i]);
+						if(t.length!=0){
+							b.push(t);
+						}
+					}
+					else if(_c.isString(a[i])){
+							try{
+							b.push(/\w+\d*\s*/.exec(a[i])[0]);
+							}
+							catch(e){
+							//the exec may not return nothing so the [0] will case error
+							}
+					}
+					else if(_c.isFinite(a[i])){
+						try{
+							b.push(/\d+\w*\s*/.exec(a[i])[0]);
+							}
+							catch(e){
+							//the exec may not return nothing so the [0] will case error
+							}
+					}
+				}
+			}
+			
+			return b;
+			};
+			/*
+
+			ex strStratwith("ambes",'be')  //[]
+			strStratwith("ambes",'am')		//["ambes"]
+			strStratwith("ambes",'a')     //["ambes"]
+			*/
+		_c.strStartWith=function(a,e){
+			var t=[],b=[];
+			if(_c.isArray(a)){
+			for(var i=0; i<a.length; i++){
+				if(_c.isString(a[i])){
+				if(a[i].substr(0,e.length)===e){
+					b.push(a[i]);
+				}
+			}
+			else if(_c.isArray(a[i])){
+				t=_c.ends(a[i],e)
+				if(t.length!==0){
+					b.push(t);
+				}
+			}
+			}
+		}
+		else if(_c.isString(a)){			
+				if(a.substr(0,e.length)===e){
+					b.push(a);
+					}
+					
+		}
+		return b;
+		};
+		/*
+
+			ex strStratwith("ambes",'be')  //["ambes"]
+			strStratwith("ambes",'es')		//["ambes"]
+			strStratwith("ambes",'ts')     //[]
+			strContain(["ambes","tetemke","but","bteer"],"b")  //["ambes", "but", "bteer"]
+			*/
+		_c.strContain=function(a,e){
+			var t=[],b=[];			
+			if(_c.isArray(a)){
+			for(var i=0; i<a.length; i++){
+				if(_c.isString(a[i])){
+					for(var l=0;l<a[i].length; l++){
+						if(a[i].substr(l,e.length)===e){
+							b.push(a[i]);
+							break;
+							}
+					}
+				
+			}
+			else if(_c.isArray(a[i])){
+				t=_c.ends(a[i],e)
+				if(t.length!==0){
+					b.push(t);
+				}				
+			}
+			}
+		}
+		else if(_c.isString(a)){
+			for(var l=0;l<a.length; l++){
+					if(a.substr(l,e.length)===e){
+						b.push(a);
+						break;
+						}
+					}
+		}
+		return b;
+		};
+		/*
+			ex strEndwith(["ambes.exe",["ambes.txt"],'exe')  //["ambes.exe"]
+			strEndwith("ambes.txt",'txt')		//["ambes.txt"]
+			strEndwith(["ambes.html","tetemke.doc",'html')     //["ambes.html"]
+		*/
+		_c.strEndWith=function(a,e){
+			var t=[],b=[];
+			
+			if(_c.isArray(a)){
+			for(var i=0; i<a.length; i++){
+				if(_c.isString(a[i])){
+				if(a[i].substr(-e.length)===e){
+					b.push(a[i]);
+				}
+			}
+			else if(_c.isArray(a[i])){
+				t=_c.ends(a[i],e)
+				if(t.length!==0){
+					b.push(t);
+				}				
+			}
+			}
+		}
+		else if(_c.isString(a)){			
+				if(a.substr(-e.length)===e){
+					b.push(a);
+					}
+					
+		}
+		return b;
+		};
+		/*
+
+			ex  pick(["ambes.txt","tetemke.doc","but.exe","ambes.exe.txt"],"ambes.txt")     //["ambes.txt",1]
+			1 is the number of occurrences
+			pick("ambesa","a")   //["a",2]
+
+		*/		
+		_c.pick=function(a,b){
+			if(_c.isArray(a)){
+				return pickA(a,b);
+			}
+			else if(_c.isString(a,b)){
+				return pickS(a,b);
+			}
+		};
+		//for internal use only
+		var pickA=function(a,b){
+			var t=[],c=[],count=0;
+			if(_c.isArray(a)){				
+				for(var i=0; i<a.length; i++){
+					if(_c.isArray(a[i])){
+						t=pickA(a[i],b);
+						if(t.length!=0){
+							if(c.length===0){
+								c[1]=count;
+								c[0]=t;
+							}
+							else{
+								c[1]=count;
+							}
+						}
+						}
+
+					else{
+						if(_c.isString(a[i]) && _c.isString(b)){
+							if((a[i]).toString().toLowerCase() === b.toString().toLowerCase()){
+							count+=1
+							if(c.length===0){
+								c[0]=b;
+								c[1]=count;
+							}
+							else{
+								c[1]=count;
+							}
+						
+						}
+						}
+						else if(a[i]===b){
+							count+=1
+							if(c.length===0){
+								c[0]=b;
+								c[1]=count;
+							}
+							else{
+								c[1]=count;
+							}
+						
+					}
+					}
+				}
+			}			
+			return c;
+		};
+		//for internal use only
+		var pickS=function(a){
+			var count=0,c=[];
+			if(_c.isString(a)){
+				for(var i=0; i<a.length; i++){
+					if(a[i].toString().toLowerCase()===b.toString().toLowerCase()){
+						c[0]=a[i];
+						count+=1;
+					}
+				}
+				c[c.length]=count;
+			}			
+			return c;
+		};
+
+		/*
+			cleans repeated space throughout the string in the array 
+			this is for internal use only
+		*/ 
+		var strCompactA=function(a){
+			var z=" ",f=[],s='',x='',y='',t=[],c=[];			
+			if(_c.isArray(a)){
+				for(var i=0; i<a.length; i++){
+					if(_c.isArray(a[i])){
+						t=strCompactA(a[i],z);
+						if(t.length!=0){
+							c.push(t);
+						}
+					}
+					else if(_c.isString(a[i])){
+					f=strCompactS(a[i],z);
+					if(f.length!=0){
+							for(var l=0; l<f.length; l++){
+							s+=f[l];
+							}													
+							c.push(s.trim());
+													
+							}			
+
+				}
+				s='';
+			}
+		}
+			return c;			
+				
+		};
+		/*
+			cleans repeated space throughout the string 
+			this is for internal use only
+		*/
+		var strCompactS=function(a){
+			var z=" ",f=[],s='',x=' ',y='',c=[];			
+			if(_c.isString(a)){
+										
+					x=a.substr(0,a.indexOf(z))+z;
+					if(x!=" "){
+						c.push(x);
+					}
+					y=a.substr(a.indexOf(z)-a.length).trim();	
+					if(y.indexOf(z)!=-1){								
+					f=strCompactS(y,z);
+					if(f.length!=0){												
+						for(var l=0; l<f.length; l++){
+							s+=f[l];
+							}
+
+							c.push(s.trim());
+													
+						}			
+
+					}
+					else{
+						c.push(y);
+					}
+					
+					}					
+
+				
+			return c;
+		};
+		/*
+		strCompact("  ambes    tetemke")   //["ambes tetemke"]
+		-->cuts all repeated space 
+		
+		*/
+		_c.strCompact=function(a){
+			
+			if(_c.isArray(a)){
+				return strCompactA(a);
+			}			
+			else if(_c.isString(a)){
+				return strCompactS(a);
+			}				
+			
+		};
+		// ____________________________________________________________STRING MANUPLATION  END'S HERE
+
+		/*
+
+		creates a set data structure with methods for accessing and adding memebers to the set
+			ex  s=createSet()   //s object is created
+			s.add("one")     //"one" is added to the set
+			s.add("one")     //nothing will added, it is allready in the set
+			s.size()        //1
+			s.find("one")   //"one" 
+			s.add("two")    //"two" is added
+			s.findAll()    //["one","two"]
+		*/
+		_c.createSet=function(){return new function(){	
+			var that=this, _a=[], tm=[];			
+			
+			this.size=function(a){				
+				return _a.length;
+			};
+			this.find=function(a){
+				if(_c.isFinite(a)|| _c.isString(a)){
+					if(_a.indexOf(a)===-1){
+						return null
+					}
+					else{
+						return a;
+					}
+				}
+				else if(_c.isArray(a)){
+					for(var i=0; i<a.length; i++){
+						this.find(a[i]);
+					}
+				}				
+				
+			};
+
+			this.findAll=function(){
+				return _a;
+			};
+			this.add=function(a){
+			if(_c.isString(a) || _c.isFinite(a)){
+				if(_a.indexOf(a)===-1){
+					_a.push(a);
+				}
+			}
+			else{				
+			_a.push(a);
+			}
+			};
+
+						
+		}
+		};
+		/*
+		FIFO insertion order is important to track who is next on the  queue
+		ex  q=createQueue()           //returns a queue object
+		q.add(1)               //1 is the first in the queue
+		q.add(2)               //2 is second
+		q.size()                //2
+		q.findAll()            //[1,2]
+		q.next()                //1
+		q.size()               //1
+		q.findAll()            //[2]
+		q.next()               //2
+		q.next()                //null
+
+		*/
+
+		_c.createQueue=function(){ return new function(){
+			
+			var f=0, t=[],v,c=[];
+			this.size=function(){
+				return c.length;
+			}
+
+			this.next=function(){
+				var inext=function(b){
+				v=null;
+				if(f>=0 && f<b.length){	
+					if(_c.isArray(b[f])){
+						v=inext(b[f]);						
+					}
+					else if(_c.isObject(b[f])){
+						var key=_c.keys(b[f]);						
+							v=inext(key[f]);
+						
+					}
+					else{
+
+					v=b[f];					
+					b.splice(0,1);
+					}			
+					
+				}
+				return v;
+			}
+			v=inext(c);
+				return v
+			};
+			this.add=function(a){
+				if(a!==undefined){
+				c.push(a);
+				}
+			}
+			this.findAll=function(){
+				return c;
+			};
+		}
+	};
+		/*
+		FILO insertion order is important to track who is on the  top of the stack
+		ex  s=createStack()           //returns a stack object
+		s.add(1)               //1 on the top of the stack
+		s.add(2)               //2 now 2 is on the top
+		s.size()                //2
+		s.findAll()            //[1,2]
+		s.next()                //2
+		s.size()               //1
+		s.findAll()            //[1]
+		s.next()               //1
+		s.next()                //null
+
+		*/
+			
+			
+		_c.createStack=function(){ return new function(){			
+			var t=[],v,c=[];
+			
+			this.size=function(){
+				return c.length;
+			}
+
+			this.next=function(){				
+				var inext=function(b){					
+				v=null;
+				if(b.length>0){	
+					if(_c.isArray(b[b.length-1])){
+						v=inext(b[b.length-1]);						
+					}
+					else if(_c.isObject(b[b.length-1])){
+						var key=_c.keys(b[b.length-1]);						
+							v=inext(key[b.length-1]);
+						
+					}
+					else{
+
+					v=b[b.length-1];					
+					b.splice(b.length-1,1);
+					
+					}			
+					
+				}
+				return v;
+			}
+			v=inext(c);
+				return v
+			};
+			this.add=function(a){
+				if(a!==undefined){
+				c.push(a);
+				
+				}
+			}
+			this.findAll=function(){
+				return c;
+			};
+		}
+		
+	};
+
+		//you can create a map object so you can use for key value pair data structure
+		_c.createMap=function(){
+			var c=[];
+			var map = new Map();
+			map.findAll=function(){
+				for(var k of map.keys()){
+					c.push(k+"=> "+map.get(k));
+				}
+				return c;
+			};			
+			return map;
+		};
+		/*
+		ex index([1,2,3,4,5,6,2],2)     //[1,6]
+		*/		
+
+		_c.index=function(a,d){
+			var i=[];
+			if(_c.isArray(a)){
+			var f=function(b){	
+			if(b===a.length){return null;}
+			else if(a[b]===d){
+				i.push(b);
+				}
+				return f(b+1);			
+			};
+			f(0);
+			}
+			return i;
+		};
+
+		/*
+		ex subset([1,2,3,4,5,6,2],2,4)     //[3,4,5]
+			subset([1,2,3,4,5,6,2],4)     //[5,2]
+
+		*/	
+		_c.subset=function(a,d,e){
+			var g,h;			
+			var r=[];
+			if(_c.isArray(a)){
+			if(d<a.length && d>0){
+				g=d;
+			}
+			if(e===undefined){
+				h=a.length-1;
+			}
+			var f=function(b){	
+			if(b===a.length){return null;}
+			else if(b<=h && b>=g){
+				r.push(a[b]);
+				}
+				return f(b+1);			
+			};
+			f(0);
+			}
+			return r;
+		};
+		/* r==true---reverse order
+		sortA is for internal use, call sort() instead
+		ex sort([4,3,2,6,1,[4,2,3,1]])  //[1,2,3,4,6,[1,2,3,4]]
+		ex sort([4,3,2,6,1,[4,2,3,1]],true)  //[6,4,3,2,1,[4,3,2,1]]
+		ex sort(["abc","cdf","bdc"])    //["abc","bdc","cdf"]
+  		*/
+		var sortA=function(a,r){
+			var d,e,i,j,m,t=[],k,n=0;
+				
+			if(_c.isArray(a)){
+				//if the first element is array sort is and put it as first element
+				if(_c.isArray(a[0])){
+					e=_c.sort(a[0],r);
+					a[0]=e;
+				}
+				//if the last element is array sort it and put it back as last element
+				if(_c.isArray(a[a.length-1])){
+					e=_c.sort(a[a.length-1],r);
+					a[a.length-1]=e;
+				}
+				for(i=0; i<a.length-1;i++){
+					m=i;
+					for(j=i+1;j<a.length; j++){
+						if(_c.isArray(a[j])){
+							
+							e=_c.sort(a[j],r);
+							a[j]=e;
+							if(a.length>2 && n===0){
+								k=j;
+							for(var st=j+1; st<a.length; st++){								
+								if(!_c.type(a[k],a[st])){
+																		
+									d=a[k];
+									a[k]=a[st];
+									a[st]=d;
+									k+=1;
+									
+								}
+								
+								if(!_c.type(a[i],a[j])){
+									d=a[i];
+									a[i]=a[st];
+									a[st]=d;
+									k+=1;
+								}
+																								
+							}
+							if(r===true){
+								if(a[j]>a[m]){
+							m=j;
+							}
+							}
+							else{
+								if(a[j]<a[m]){
+							m=j;
+							}
+							}
+							
+							
+						}
+						n=1;
+
+						}
+						//continue the checking for sorting
+						else {
+						//if the selected minimum and the current cursor are string 
+						if(_c.isString(a[j]) && _c.isString(a[m])){
+							if(r===true){
+								if(a[j]>a[m]){
+							m=j;
+							}
+							}
+							else{
+								if(a[j]<a[m]){
+							m=j;
+							}
+							}
+							}
+						
+						//if the selected minimum and the current cursor are numbers
+						else if(_c.isFinite(a[j]) && _c.isFinite(a[m])){
+							if(r===true){
+								if(a[j]>a[m]){
+							m=j;
+							}
+							}
+							else{
+								if(a[j]<a[m]){
+							m=j;
+							}
+							}
+						}
+						
+						else{
+							if(a.length>2 && n===0){
+								k=j;
+							for(var st=j+1; st<a.length; st++){								
+								if(!_c.type(a[k],a[st])){
+																		
+									d=a[k];
+									a[k]=a[st];
+									a[st]=d;
+									k+=1;
+									
+								}
+																								
+							}
+							if(r===true){
+								if(a[j]>a[m]){
+							m=j;
+							}
+							}
+							else{
+								if(a[j]<a[m]){
+							m=j;
+							}
+							}
+							
+						}
+						n=1;
+					}
+					}
+					}						
+					
+					if(m!==i){						
+						t=a[i];
+						a[i]=a[m];
+						a[m]=t;
+					}
+				}
+				
+			}
+			return a;
+		};
+
+		/*
+			for internal use
+		*/
+		var sortO=function(a,r){
+			var keys,e,i,j;			
+			if(_c.isObject(a) && !_c.isArray(a)){
+				keys=_c.keys(a);//returns array so array with in array				
+				for(var la=0;la<keys.length; la++){					
+						for(var ll=0; ll<keys[la].length; ll++){
+							if(_c.isArray(a[keys[la][ll]]) ||_c.isObject(a[keys[la][ll]])){
+							e=_c.sort(a[keys[la][ll]],r);
+							a[keys[la][ll]]=e;
+							}
+						}
+					
+					
+			}
+			
+			}
+			return a;
+		};
+		//sort is the interface used to choose one from the above based on data type provided 
+		_c.sort=function(a,r){
+			var b;
+			
+			
+			if(_c.isArray(a)){
+				b=sortA(a,r);
+			}
+			else if(_c.isObject(a)){
+				b=sortO(a,r);
+			}	
+			return b;
+		};		
+			/*
+		this will organize the objects in order after sorting it them
+		*/
+		var organize=function(a,b){
+
+			
+		};
+
+		/*
+			ex keys({a:1,b:2,c:{e:8,f:9}})    //[["a","b","c"],["e","f"]]
+		*/
+		_c.keys=function(a){
+			
+			var t=[],e,f,key=[];
+			if(_c.isObject(a) && !_c.isArray(a)){
+				key[key.length]=_c.sort(_c.w.Object.keys(a));
+				t=_c.sort(_c.w.Object.keys(a));	
+				f=function(b){								
+					if(b<0){
+						return null;
+					}
+
+					else{						
+					if(_c.isObject(a[t[b]]) && !_c.isArray(a[t[b]])){
+						e=_c.keys(a[t[b]]);
+						if(_c.isArray(e)){
+							key[key.length]=e;
+						}
+					}
+					else if(_c.isArray(a[t[b]])){
+						e=_c.keys(a[t[b]]);
+						if(_c.isArray(e)){
+							key[key.length]=e;
+						}
+					}
+					}
+
+					return f(b-1);
+				};	
+				
+				f(t.length-1)	
+
+			}		
+			else if(_c.isArray(a)){
+				for (var la=0; la<a.length; la++){
+					if(_c.isObject(a[la]) && !_c.isArray(a[la])){
+						e=_c.keys(a[la]);
+						if(_c.isArray(e)){
+							key[key.length]=e;
+						}						
+
+					}
+					else if(_c.isArray(a[la])){
+						e=_c.keys(a[la]);
+						if(_c.isArray(e)){			
+						key[key.length]=e;
+					}
+					}
+					
+				}
+
+			}
+			else{
+				return null;
+			}	
+
+			return key;
+		};
+
+
+		/*
+		THIS WILL COMPARE TWO INPUTS AND COMPARE THE NUMBER OF MEMEBERS OR KEYS OF OBJECTS
+		RETURNS 0-->EQAUL LENGTH RETURN ,Returns 1-->IF FIRST INPUT HAS MORE MEMBERS, RETURN -1 IF SECOND INPUT...
+		ex  compare([1,2,3,4],[2,3,4,5])  //0
+			compare([1,2,3],[2,3,4,5])  //-1
+			compare([1,2,3,4],[2,3,4])  //1
+		*/
+		_c.compare=function(a,b){
+			var rt=[],ag=0,bg=0,ab=0,ta,tb;
+			//if a and b are not object 
+			if((_c.isArray(a) && _c.isArray(b)) || (_c.isString(a) && _c.isString(b))){
+				
+				if(a.length>b.length){
+					ag+=1;
+				}
+				else if(a.length===b.length){
+					ab+=1;
+				}
+				else if(a.length<b.length){
+					bg+=1;
+				}
+			}			
+			//if a and b are numbers
+			else if( _c.isFinite(a) && _c.isFinite(b)){
+				
+				if(a>b){
+					ag+=1;
+				}
+				else if(a===b){
+					ab+=1;
+				}
+				else if(a<b){
+					bg+=1;
+				}
+			}
+			//if a nad b are objects
+			else if(_c.isObject(a) && !_c.isArray(a) && _c.isObject(b) && !_c.isArray(b)){
+				ta=_c.keys(a);				
+				tb=_c.keys(b);				
+			if(ta.length===tb.length){
+				var f=function(p){
+					if(p<0){						
+							return null;
+						}
+
+					else{
+
+							if(ta[p].length === tb[p].length){								
+									ab+=1;
+							for(var lo=0; lo<ta[p].length; lo++){								
+								if(_c.isArray(ta[p][lo])){
+									rt=_c.compare(ta[p][lo],tb[p][lo]);
+									if(rt===0){
+										ab+=1;
+										}
+									else if(rt===1){
+										ag+=1;
+									}
+									else if(rt===-1){
+										bg+=1;
+									}
+
+									}
+														
+								
+								}
+							}
+							else if(ta[p].length>tb[p].length){
+									ag+=1;
+								}
+							else if(ta[p].length<tb[p].length){
+									bg+=1;
+								}
+							
+					}
+					
+					return f(p-1);
+				};
+				f(ta.length-1);
+				
+				}
+				else if(ta.length > tb.length){
+					ag+=1;
+				}
+				
+				else if(ta.length < tb.length){
+					bg+=1;
+				}
+			}			
+			
+			if(ab>ag && ab>bg){
+				return 0;
+							}
+			else if(ag>bg && ag>ab){
+				return 1;
+							}
+			else if(bg>ag && bg>ab){
+				return -1
+			}
+			else {
+				return -1;
+			}
+			
+		};
+		/*
+
+		THIS WILL COMPARE TWO INPUTS(OBJECTS OR PRIMITIVES)FOR THEIR EQAULITY 
+		THE INPUT C IS FOR STRING EQAULITY TESt=[], TRUE CASE INSENSTIVE , FALSE CASESENSTIVE
+		IT COMPAES EVERY MEMBER AND KEYS OF AN OBJECT AT THE SAME DEEPTH
+		this is for internal use only 
+		*/
+		var Aeqaul=function(a,b){
+			var e=false,f,sa,sb,h,so;
+			if(_c.isArray(a) && _c.isArray(b)){				
+					sa=_c.sort(a);
+					sb=_c.sort(b);
+					//this function will not return any thing but itself then finally null
+					f=function(d){
+						if(d<0){ return null;}
+						else {
+							if(_c.isArray(sa[d]) || _c.isObject(sa[d])){
+								//grap the return value then see the result
+								e=_c.isEqaul(sa[d],sb[d]);
+								
+								}
+							
+							//check every entry in an array inside array
+							else{
+							for(var la=0;la<sa.length; la++){
+								if(_c.isObject(sa[la]) || _c.isArray(sa[la])){
+
+									e=_c.isEqaul(sa[la],sb[la]);
+								}
+
+							else if(sa[la]!=sb[la]){
+								return e=false;
+							}
+							else if (sa[la] === sb[la]){
+								e=true;
+							}
+							}
+							}
+							}
+						
+					return f(d-1);
+					}
+					f(sa.length-1);
+					}
+					//if the array is empty
+					else if(a.length===0 && b.length===0){
+						e=true;
+					}
+				
+			return e;
+
+		};
+
+		/*
+		for internal use only
+		*/
+		var Oeqaul=function(a,b){
+			var e=false,f,sa,sb,h,so;
+			if(_c.isObject(a) && !_c.isArray(a) && _c.isObject(b) && !_c.isArray(b)){
+					sa=_c.sort(_c.keys(a));
+					sb=_c.sort(_c.keys(b));	
+								
+					//only if the number of keys of the two objects are the same , continue testing
+					if(sa.length===sb.length && sa.length!=0){
+					f=function(d){
+						if(d<0){ return null;}
+						else {
+								//check for empty object 
+								if(sa.length===1 && sb.length===1 && sa[d].length===0 && sb[d].length===0){
+									return e=true;
+								}
+
+								else{
+									//check every key if it has attached to object or array
+
+								for(var lo=0; lo<sa[d].length; lo++){
+									
+									if(_c.isArray(sa[d][lo])){
+										for(var x=0; x<sa[d][lo].length; x++){
+											if(_c.isObject(a[sa[d][lo][x]]) || _c.isArray(a[sa[d][lo][x]])){
+											
+											//grap the return value then see the result
+											e=_c.isEqaul(a[sa[d][lo][x]],b[sb[d][lo][x]]);
+											
+											
+											}						
+										
+										else{
+										if(sa[d][lo][x]!=sb[d][lo][x]){
+											
+											return e=false;
+											
+										}
+										else if(sa[d][lo][x]===sb[d][lo][x]){
+											e=true;
+										}
+										}
+
+										}
+
+									}
+									else{
+										if(_c.isObject(a[sa[d][lo]]) || _c.isArray(a[sa[d][lo]])){
+											
+											//grap the return value then see the result
+											e=_c.isEqaul(a[sa[d][lo]],b[sb[d][lo]]);
+											
+											
+											}						
+										
+										else{
+										if(sa[d][lo]!=sb[d][lo]){
+											
+											return e=false;
+											
+										}
+										else if(sa[d][lo]===sb[d][lo]){
+											e=true;
+										}
+										}
+									}
+								}
+
+						}
+						}	
+						
+					return f(d-1);
+					}
+					//because the two objects of the same number of members, any one of the two will be fine in the input
+					f(sa.length-1);
+				}
+				else if(sa.length===0 && sa.length===0){
+					e=true;
+				}
+				//if the keys of the two objects in the same level are not equal return false
+				else{return e=false;}
+				}
+				return e;
+		};
+		/*
+		for internal use only
+		*/
+		var Seqaul=function(a,b,c){
+			var e=false;
+
+			if(_c.isString(a)){
+					if(c===true){
+						if(a.toString().toLowerCase()===b.toString().toLowerCase()){
+							e=true;
+						}
+					}
+					else{
+						if(a===b){
+						e=true;
+					}
+					}
+				}
+			return e;
+		};
+
+		/*
+			for internal use only
+		*/
+		 var Neqaul=function(a,b){
+			var e=false;
+			if(_c.isFinite(a) && _c.isFinite(b)){
+					if(a===b){
+						e=true;
+					}
+
+				}
+			return e;
+		};
+
+		/*
+		if input is object, this eqaulity is about the keys of the two objects
+		ex isEqaul({a:1,b:2,c:{e:8,f:9}},{a:1,b:2,c:{e:8,f:9}})  //true
+		change the value of f:9 to f:100 ----still
+		ex isEqaul({a:1,b:2,c:{e:8,f:9}},{a:1,b:2,c:{e:8,f:100}})  //true
+		change the key f in the second input to z then it will become false
+		ex isEqaul({a:1,b:2,c:{e:8,f:9}},{a:1,b:2,c:{e:8,z:9}})  //false
+		ex isEqaul([1,2,3,4,5],[1,2,3,4,5])    //true
+		*/
+		_c.isEqaul=function(a,b,c){
+			//c is for case sensitive  or not 
+			var e=false,f,sa,sb,h,so;
+			h=_c.compare(a,b);
+			if(h===0){				
+			if(_c.isString(a) && _c.isString(b)){
+				e=Seqaul(a,b,c);
+			}
+			else if(_c.isFinite(a) && _c.isFinite(b)){
+				e=Neqaul(a,b);
+			}
+			else if(_c.isObject(a) && !_c.isArray(a) && _c.isObject(b) && !_c.isArray(b)){
+				e=Oeqaul(a,b);
+			}
+			else if(_c.isArray(a) && _c.isArray(b)){
+				e=Aeqaul(a,b);
+			}
+				
+			else{
+				e=false;
+			}
+			}			
+		
+		return e;
+		};
+		//for objects it is like the isEqaul method that compare the keys
+		_c.isIdentical=function(a,b,c){
+			var d,e=false,f,g,sa,sb;
+			f=c;
+			if(f===undefined){c=false;}
+			if(_c.isEqaul(a,b,c)){				
+				if(_c.isArray(a) && _c.isArray(b)){
+					//if the array is not empty
+					if(a.length!=0){
+					sa=_c.sort(a);
+					sb=_c.sort(b);
+					for(var lo=0; lo<sa.length; lo++){
+						if(_c.isArray(sa[lo]) || _c.isObject(sa[lo])){
+							e=_c.isIdentical(sa[lo],sb[lo]);
+						}
+						else if(sa[lo]===sb[lo]){
+							e=true;
+						}
+						else if(sa[lo]!=sb[lo]){
+							return e=false;
+						}
+					}
+					}
+					//if the array is empty
+					else if(a.length===0){e=true};					
+				}
+				else if(_c.isObject(a) && _c.isObject(b)){
+					if(_c.keys(a)[0].length===0 && _c.keys(b)[0].length===0){e=true;}
+					else{
+						sa=_c.sort(_c.keys(a));
+						sb=_c.sort(_c.keys(b));
+						for(var lo=0; lo<sa.length; lo++){
+						if(_c.isArray(sa[lo]) || _c.isObject(sa[lo])){
+							for(var n=0; n<sa[lo].length; n++){
+								if(a[sa[lo][n]]===b[sb[lo][n]]){
+									e=_c.isIdentical(sa[lo],sb[lo]);
+								
+								}
+							}							
+							
+
+						}
+						else if(sa[lo]===sb[lo]){
+							e=true;
+						}
+						else if(sa[lo]!=sb[lo]){
+							return e=false;
+						}
+					}
+				}
+				}
+				else if(_c.isString(a) && _c.isString(b)){
+					if(a===b){
+							e=true;
+						}
+					else if(a!=b){
+						return e=false;
+						}
+					
+				}
+				else if(_c.isFinite(a) && _c.isFinite(b)){
+					if(a===b){
+							e=true;
+						}
+					else if(a!=b){
+						return e=false;
+						}
+					
+				}
+				else {
+					e=false;
+				}
+			}
+			return e;
+		};
+		/*
+			ex intersection([1,2,3,4,5,6],[1,2,5,6,7])   //[1,2,5,6]
+			if input is object, it compares the common property to the two objects
+			intersection({a:[1,2,3,4,5,6],b:98,c:88},{a:[1,2,5,6,7],b:90})  //[["a","b"]]
+		*/
+		_c.intersection=function(a,b){
+			var t=[],c=[];
+			if(_c.type(a,b)){
+				if(_c.isArray(a)){					
+					for(var i=0; i<a.length; i++){						
+						for(var n=0; n<b.length; n++){
+							if(_c.isArray(a[i]) || _c.isObject(a[i])){
+								t=_c.intersection(a[i],b[n]);
+								if(t.length!=0){
+
+									c.push(t);
+								}
+							}
+							else if(a[i]===b[n])
+								c.push(a[i]);
+						}
+					}
+				}
+			else if(_c.isObject(a)){
+				var akey=_c.keys(a);
+				var bkey=_c.keys(b);
+				c=_c.intersection(akey,bkey);
+			}
+			}
+
+			return c;
+		};
+		/*
+			ex union([1,2,3,4,5,6],[1,2,5,6,7])   //[1,2,3,4,5,6,7]
+			if you are using objects, the object with more keys has to assigned to b and 
+			object with less keys as first parameter
+		*/
+		_c.union=function(a,b){			
+				var t=[];
+			if(_c.type(a,b)){
+				if(_c.isArray(a)){
+					if(a.length>b.length){
+						for(var i=0; i<a.length; i++){					
+						if(_c.isArray(a[i]) || _c.isObject(a[i])){
+							t=_c.union(a[i],b[i]);
+								if(t.length!=0){									
+									b.push(t);									
+								}
+							}
+							if(b.indexOf(a[i])===-1 && a[i]!==undefined){
+								b.push(a[i]);					
+							}
+						}
+						
+						
+					}
+					else if(a.length<=b.length){
+									
+						for(var i=0; i<b.length; i++){					
+							if(_c.isArray(a[i]) || _c.isObject(a[i])){
+								t=_c.union(a[i],b[i]);
+									if(t.length!=0){										
+										b.push(t);
+									}
+								}
+								if(b.indexOf(a[i])===-1 && a[i]!==undefined){
+									b.push(a[i]);					
+								}
+							}
+						}
+				}
+			else if(_c.isObject(a)){
+				var akey=_c.keys(a);
+				var bkey=_c.keys(b);
+				var d=_c.union(akey,bkey);
+				
+			}
+			}
+
+			return b;
+
+		};
+		/*
+		takes two array inputs and returns an array of none common elements to both input arrays
+		ex XOR([1,2,3,4],[1,2,3,5])    //[5,4]
+  		*/
+		_c.XOR=function(a,b){
+			var s=[],t=[],c=[];
+			c=_c.intersection(a,b);
+			if(c.length===0){
+				c=_c.union(a,b);
+			}
+			else if(c.length!=0){
+				var f=function(x){							
+				for(var i=0; i<x.length; i++){
+					for(var n=0; n<c.length; n++){
+						if(_c.isArray(c[n]) || _c.isObject(c[n])){
+							t=_c.XOR(x[i],c[n]);
+							if(t.length!=0){
+								s.push(t);
+							}
+						}
+					
+					else if(x[i]==c[n]){
+						x.splice(i,1);
+					}
+					}
+				}
+				};
+				f(a);
+				f(b);
+			s=_c.union(a,b);
+			}
+			return s;
+		};
+		/* the crossoponding elements of a and b will be used as input for the oporater
+		in f example(f-->(+,*,-,/,%) or could be any char to join the two inputs) 
+
+		ex carproduct([1,2,3],[1,2,3],"*")  //[1,4,9]
+		ex carproduct([1,2,3],[1,2,3],"/")  //[1,1,1]
+		*/
+		_c.cartProduct=function(a,b,f){
+			if(f===undefined){f="*";}
+				var t=[],c=[];
+			if(_c.type(a,b)){
+				if(_c.isArray(a)){					
+					for(var i=0; i<a.length && i<b.length; i++){					
+						if(_c.isArray(a[i]) || _c.isObject(a[i])){
+							t=_c.cartProduct(a[i],b[i]);
+								if(t.length!=0){
+
+									c.push(t);
+								}
+							}
+							if(f==="+"){
+								try{
+								c.push(a[i]+b[i]);
+								}
+								catch(e){}
+								}
+							else if(f==="*"){
+								try{
+								c.push(a[i]*b[i]);
+								}
+								catch(e){}
+							}
+							else if(f==="-"){
+								try{
+								c.push(a[i]-b[i]);
+								}
+								catch(e){}
+							}
+							else if(f==="%"){
+								try{
+								c.push(a[i]%b[i]);
+								}
+								catch(e){}
+							}
+							else if(f==="/"){
+
+								try{
+								c.push(Number ((a[i]/b[i]).toFixed(2)));
+								}
+								catch(e){}	
+							}
+							else{
+								c.push(a[i]+f+b[i]);
+							}					
+					
+						}
+					}
+			else if(_c.isObject(a)){
+				var akey=_c.keys(a);
+				var bkey=_c.keys(b);
+				c=_c.cartProduct(akey,bkey);
+			}
+			}
+
+			return c;
+
+		};
+		/*
+			the group function will group all elements with the same value to one array
+			the more divers the inputs the more number of classes represented by array
+			ex group([1,2,1,2,3,3,4,4,5,5,1,3])  //[[1,1,1],[2,2],[3,3,3],[4,4],[5,5]]
+
+		*/
+		_c.group=function(a){
+			
+			if(_c.isArray(a)){
+				return Agroup(a);
+			}
+			else if(_c.isObject(a)){
+				return Ogroup(a);
+			}				
+			else{
+				return a;
+			}
+		};
+		
+		var Ogroup=function(a,c){
+			return a;
+		};
+		var Agroup=function(a){
+			var g=[];
+			if(_c.isArray(a)){				
+			var f=function(b){	
+			if(b===a.length){return null;}
+			else if(b===0){
+				if(_c.isArray(a[b])){
+					g[g.length]=Agroup(a[b]);
+				}
+				else if(_c.isObject(a[b])){
+					g[g.length]=a[b]
+				}
+				else{
+				g[g.length]=[a[b]];
+				}
+				}
+			else{
+				if(_c.isArray(a[b])){
+					g[g.length]=Agroup(a[b]);
+				}
+				else{
+				var x=-1;
+				for(var i=0; i<g.length; i++){					
+					if(g[i].indexOf(a[b])!==-1){
+						g[i][g[i].length]=a[b];
+						x=1;
+						break;
+					}					
+				}
+				if(x!==1){
+					g[g.length]=[a[b]];
+
+				}
+				
+			}
+			}
+				return f(b+1);			
+			};
+			f(0);
+			}
+			return g;
+
+		};
+
+		//the end of collection methods
+			
+
+		return this.$mvc;};}()();		
+
+	return jsquery;}());
