@@ -49,6 +49,7 @@ createStacke()
 	stack.findAll()            //3
 	
 createMap()
+
 	var mapObject=myapp.createMap()      //you can use all functions which the native Map object provdes
 
 Events
