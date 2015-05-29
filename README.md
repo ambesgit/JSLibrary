@@ -150,6 +150,10 @@ compare()
 keys()
 
 	myapp.$collections.keys({a:1,b:2,c:{e:8,f:9}})    //[["a","b","c"],["e","f"]]
+	
+invert()
+
+	myapp.$collections.invert({a:20,b:30,c:{d:49,f:{e:23}}})    //{20: "a", 30: "b"}
 
 sort()
 
