@@ -2608,6 +2608,36 @@
 			return g;
 
 		};
+		
+		/*
+
+		ex invert({a:20,b:30,c:{d:49,f:{e:23}}})    //{20: "a", 30: "b"}
+		*/
+		_c.invert=function(a){
+			var tm={},k=[], v=[],obj={};
+			if(_c.isObject(a)){
+				k=_c.keys(a)
+				for(var i=0; i<k.length; i++){
+					if(_c.isArray(k[i])){
+						for(var j=0; j<k[i].length; j++){
+							if(!_c.isArray(k[i][j])){							
+								if(_c.isString(a[k[i][j]]) || _c.isFinite(a[k[i][j]])){
+									obj[a[k[i][j]]]=k[i][j];
+									}
+							}							
+						}
+					}
+					else{
+							//
+					}
+				
+
+				}
+					
+				}
+			
+				return obj;
+		};
 
 		//the end of collection methods
 			
