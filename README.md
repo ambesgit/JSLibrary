@@ -225,6 +225,7 @@ charAppend()
 	myapp.$collections.charAppend("attache","d")   //"attached"
 
 charPreppend()
+
 	myapp.$collections.charPreppend("chool","s")    //"school"
 
 enclosed()
