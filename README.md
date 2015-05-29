@@ -187,7 +187,7 @@ strStartWith()
 	
 strTrim()
 
-	myapp.$collections.strTrim([" abc ", " derf "])  //[" abc"," derf"]
+	myapp.$collections.strTrim([" abc ", " derf "])  //["abc","derf"]
 
 strTrimLeft()
 
