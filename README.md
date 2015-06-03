@@ -1,6 +1,5 @@
 
-      Created  by Ambasager Gebremeskel  05/28/2015   currently looking for a job 
-      you can reach me at 202 412 1503 or 703-945-0620
+      Created  by Ambasager Gebremeskel  
 
 # JSLibrary
 	this JSLibrary has many functions to manuplate strings, arrays, objects and numbers. Also it has factory functions to 	create specialized objects
